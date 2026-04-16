@@ -10,9 +10,12 @@ from datetime import datetime
 import boto3
 from botocore.exceptions import ClientError
 from context import prompt
+import logging
 
 # Load environment variables
 load_dotenv()
+
+logger = logging.getLogger(__name__)
 
 app = FastAPI()
 
@@ -148,14 +151,23 @@ def call_bedrock(conversation: List[Dict], user_message: str) -> str:
         error_code = e.response['Error']['Code']
         if error_code == 'ValidationException':
             # Handle message format issues
-            print(f"Bedrock validation error: {e}")
+            logger.exception("Bedrock validation error")
             raise HTTPException(status_code=400, detail="Invalid message format for Bedrock")
         elif error_code == 'AccessDeniedException':
-            print(f"Bedrock access denied: {e}")
+            logger.exception("Bedrock access denied")
             raise HTTPException(status_code=403, detail="Access denied to Bedrock model")
+        elif error_code in ('ThrottlingException', 'TooManyRequestsException'):
+            logger.exception("Bedrock request throttled")
+            raise HTTPException(status_code=429, detail="Bedrock request rate limit exceeded")
+        elif error_code in ('ServiceUnavailableException', 'InternalServerException'):
+            logger.exception("Bedrock service unavailable")
+            raise HTTPException(status_code=503, detail="Bedrock service is temporarily unavailable")
         else:
-            print(f"Bedrock error: {e}")
-            raise HTTPException(status_code=500, detail=f"Bedrock error: {str(e)}")
+            logger.exception("Unexpected Bedrock client error")
+            raise HTTPException(
+                status_code=500,
+                detail="Unable to process request with Bedrock at this time"
+            )
 
 
 @app.get("/")
