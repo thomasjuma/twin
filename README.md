@@ -16,8 +16,8 @@ API Gateway
     ↓
 Lambda Function (Backend)
     ↓
-    ├── OpenAI API (for responses)
-    └── S3 Memory Bucket (for persistence)
+    ├── AWS Bedrock (AI responses)
+    └── S3 Memory Bucket (persistence)
 ```
 
 ### Key Components
@@ -27,3 +27,18 @@ Lambda Function (Backend)
 3. **API Gateway**: Manages API routes, handles CORS
 4. **Lambda**: Runs the Python backend serverlessly
 5. **S3 Memory Bucket**: Stores conversation history as JSON files
+
+----
+```
+Terraform Configuration
+    ├── S3 Buckets (Frontend + Memory)
+    ├── Lambda Function with IAM Role
+    ├── API Gateway with Routes
+    ├── CloudFront Distribution
+    └── Optional: Route 53 + ACM Certificate
+
+Managed via Workspaces:
+    ├── dev/   (Development environment)
+    ├── test/  (Testing environment)
+    └── prod/  (Production with custom domain)
+```
