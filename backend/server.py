@@ -109,17 +109,10 @@ def save_conversation(session_id: str, messages: List[Dict]):
 def call_bedrock(conversation: List[Dict], user_message: str) -> str:
     """Call AWS Bedrock with conversation history"""
     
-    # Build messages in Bedrock format
+    # Build messages in Bedrock format (must alternate user / assistant)
     messages = []
-    
-    # Add system prompt as first user message
-    # Or there's a better way to do this - pass in system=[{"text": prompt()}] to the converse call below
-    messages.append({
-        "role": "user", 
-        "content": [{"text": f"System: {prompt()}"}]
-    })
-    
-    # Add conversation history (limit to last 25 exchanges)
+
+    # Last ~25 exchanges (user + assistant pairs)
     for msg in conversation[-50:]:
         messages.append({
             "role": msg["role"],
@@ -137,6 +130,7 @@ def call_bedrock(conversation: List[Dict], user_message: str) -> str:
         response = bedrock_client.converse(
             modelId=BEDROCK_MODEL_ID,
             messages=messages,
+            system=[{"text": prompt()}],
             inferenceConfig={
                 "maxTokens": 2000,
                 "temperature": 0.7,
