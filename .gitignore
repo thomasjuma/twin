@@ -177,12 +177,14 @@ celerybeat.pid
 
 # Environments
 .env
+.env.*
 .venv
 env/
 venv/
 ENV/
 env.bak/
 venv.bak/
+uv.lock
 
 # Spyder project settings
 .spyderproject
@@ -222,3 +224,18 @@ cython_debug/
 .pypirc
 
 .DS_Store
+
+
+# Terraform
+*.tfstate
+*.tfstate.*
+.terraform/
+.terraform.lock.hcl
+terraform.tfstate.d/
+*.tfvars
+!terraform.tfvars
+!prod.tfvars
+
+# Lambda packages
+lambda-deployment.zip
+lambda-package/
