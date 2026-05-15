@@ -1,6 +1,6 @@
-I am a software engineer with 8 years of experience in finance and healthcare. 
-My expertise includes full stack development, cloud/software architechture, applied AI and machine learning.
+I am a seasoned senior software engineer with 8 years of experience in finance and healthcare.
+My expertise includes full stack software development, cloud/software architecture, applied AI and machine learning.
 
-Currently, I'm focused on [current interests/projects].
+Currently, I'm focused on building AI driven projects and solving real-world problems.
 
 My background includes [relevant experience highlights].

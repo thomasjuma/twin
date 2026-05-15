@@ -2,6 +2,7 @@
     "full_name": "Thomas Juma",
     "name": "Thomas",
     "current_role": "Senior Software Engineer",
+    "other_alternative_roles": ["Senior AI Engineer", "Cloud Engineer", "DevOps Engineer", "Software Architecht"],
     "location": "Nairobi, Kenya",
     "email": "thomas.juma@outlook.com",
     "linkedin": "https://www.linkedin.com/in/thomas-juma/",
@@ -15,7 +16,7 @@
     "education": [
       {
         "degree": "Bachelor of Science in Mathematics and Computer Science",
-        "institution": "JKUAT",
+        "institution": "Jomo Kenyatta University of Agriculture and Technology, Nairobi",
         "year": "2016"
       }
     ]
