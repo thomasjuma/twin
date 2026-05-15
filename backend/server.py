@@ -1,11 +1,14 @@
-from fastapi import FastAPI, HTTPException
-from fastapi.middleware.cors import CORSMiddleware
 import os
 from dotenv import load_dotenv
 import uuid
 from datetime import datetime
+from fastapi import FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import StreamingResponse
+from openai import OpenAI
 
 from models import ChatRequest, ChatResponse
+from context import prompt
 from bedrock_service import USE_S3, BEDROCK_MODEL_ID, load_conversation, save_conversation
 
 
@@ -13,6 +16,7 @@ from bedrock_service import USE_S3, BEDROCK_MODEL_ID, load_conversation, save_co
 load_dotenv()
 
 app = FastAPI()
+client = OpenAI()
 
 # Configure CORS
 origins = os.getenv("CORS_ORIGINS", "http://localhost:3000").split(",")
@@ -52,9 +56,36 @@ async def chat(request: ChatRequest):
         # Load conversation history
         conversation = load_conversation(session_id)
 
-        # Call Bedrock for response
-        assistant_response = call_bedrock(conversation, request.message)
+        # Build messages for OpenAI
+        messages = [{"role": "system", "content": prompt()}]
 
+        # Add conversation history (keep last 20 messages for context window)
+        for msg in conversation[-20:]:
+            messages.append({"role": msg["role"], "content": msg["content"]})
+
+        # Add current user message
+        messages.append({"role": "user", "content": request.message})
+
+        # Call OpenAI API
+        stream = client.chat.completions.create(
+            model="gpt-4o-mini", 
+            messages=messages,
+            stream=True
+        )
+
+        assistant_response = ""
+        def event_stream():
+            for chunk in stream:
+                text = chunk.choices[0].delta.content
+                if text:
+                    assistant_response += text
+                    lines = text.split("\n")
+                    for line in lines[:-1]:
+                        yield f"data: {line}\n\n"
+                        yield "data:  \n"
+                    yield f"data: {lines[-1]}\n\n"
+
+        print(f"Assistant response: {assistant_response}")
         # Update conversation history
         conversation.append(
             {"role": "user", "content": request.message, "timestamp": datetime.now().isoformat()}
@@ -70,8 +101,7 @@ async def chat(request: ChatRequest):
         # Save conversation
         save_conversation(session_id, conversation)
 
-        return ChatResponse(response=assistant_response, session_id=session_id)
-
+        return StreamingResponse(event_stream(), headers={"sessionId": session_id}, media_type="text/event-stream")
     except HTTPException:
         raise
     except Exception as e:
