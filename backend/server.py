@@ -35,7 +35,7 @@ app.add_middleware(
 @app.get("/")
 async def root():
     return {
-        "message": "AI Digital Twin API (Powered by AWS Bedrock)",
+        "message": "AI Digital Twin API (Powered by OpenAI)",
         "memory_enabled": True,
         "storage": "S3" if USE_S3 else "local",
         "ai_model": OPENAI_CHAT_MODEL,
