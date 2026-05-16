@@ -1,0 +1,88 @@
+### PERSONAL INFORMATION
+    Phone Number: +254723745263
+    Hobbies: Reading, Basketball, Traveling
+
+### PROFESSIONAL SUMMARY
+    Dynamic Senior Software Engineer with over 8 years of experience in designing, developing, and maintaining large-scale software solutions across diverse sectors. Expertise in leading teams and mentoring junior developers while fostering a productive, collaborative and innovative environment. Proficient in many languages and technologies with a strong focus on optimising application performance and implementing efficient deployment processes. Committed to continuous learning and leveraging data-driven insights to drive improvements, while ensuring high-quality software delivery. A dedicated team player who thrives on collaboration to achieve exceptional results.
+
+### SOCIAL PROFILES
+  - LinkedIn: https://www.linkedin.com/in/thomas-juma/
+  - GitHub: https://github.com/thomasjuma
+  - Kaggle: https://www.kaggle.com/thomsejuma
+
+### LANGUAGES
+  - Swahili
+  - English
+
+### SKILLS
+    - Programming: Python, Java, JavaScript, C#, TypeScript, C++, Kotlin
+    - Cloud Computing
+    - Software Architecture: Distributed Systems, Microservices, Scalability & Performance Tuning
+    - Amazon Web Services(AWS)
+    - Docker
+    - Communication
+    - Databases: Relational Databases, NoSQL Databases, Graph Databases
+    - RESTful APIs
+    - Node.js
+    - Linux
+    - Agile Methodologies
+    - Angular
+    - Version Control Systems
+    - GitHub Copilot
+    - Artificial Intelligence
+    - Collaboration and teamwork
+    - Leadership
+    - Software Monitoring and Observability
+    - Critical Thinking
+
+### WORK EXPERIENCE
+  #### Senior Software Engineer at Cellulant, December 2022 – October 2025
+    - Designed, developed and maintained software solutions using Spring Boot microservices and other tools across multiple products i.e. USSD payments, Bill-Payments, Banking.
+    - Migrated legacy applications to more optimized cloud environments thereby saving upwards of $50,000 in computing costs and eliminating software vulnerabilities by 95%.
+    - Composed and performed functional tests on software applications or features to ensure they meet the requirements and regulations.
+    - Lead and mentored junior developers by providing guidance and support to enhance their skills and knowledge.
+    - Resolved customer tickets on time thereby improving the team’s service delivery metrics.
+    - Actively monitoring application performance and identifying areas of improvement with tools like NewRelic and Datadog.
+    - Automate deployment processes via GitLab CI/CD tools.
+
+  #### Software Engineer at Cellulant, December 2021 – December 2022
+    - Designed, developed and maintained the Tingg USSD platform deployed on Amazon Elastic Kubernetes Service to power offline payments across the markets.
+    - Migrated the agency banking platform from on-premise to the more reliable AWS EC2 instances thereby securing $100000+ monthly revenue for the business.
+    - Migrated software assets to more optimized AWS cloud services thereby increasing throughput by more than 3 times and reducing downtime by &gt;90%.
+    - Participated in code reviews, debugging and testing activities to ensure the quality and functionality of the software.
+    - Contributed to the continuous improvement of software development process and best practices, driving efficiency and automating software delivery.
+
+  #### Backend Developer at Techsavannah, June 2021 – December 2021
+    - Converted legacy PHP applications to cloud-native Spring Boot microservices, containerized using docker and deployed to Amazon EKS for higher agility, availability and maintainability.
+    - Migrated software assets from monoliths to more optimized microservices environment on AWS cloud thereby increasing throughput and reducing downtime.
+    - Implemented and optimised database structures and queries to ensure efficient data retrieval and storage.
+    - Participated in code reviews and testing activities to ensure the quality and functionality of applications.
+
+  #### Software Developer at Unitcare Network, November 2019 – May 2021
+    - Effectively upgraded the system from AngularJS to Angular 8.
+    - Improved the front-facing web applications with PWA features to bring a native app-like experience for our users.
+    - Implementing browserble APIs to expose valuable data, perform background tasks within the system and real-time data processing under the .NET platform(C#).
+
+
+### EDUCATION
+  - Jomo Kenyatta University of Agriculture and Technology,  Bachelor of Science in Mathematics and Computer Science
+
+### INTERNSHIPS
+  #### Software Support Intern at  OTB Africa, Nairobi, February 2018 – August 2018
+    - Web application development using the Django.
+    - Developed a funeral home system with the Odoo platform.
+    - Helped maintain the Rwandan Development Board system developed on the python Django Rest Framework and React.
+    - Developed business intelligence reports using Metabase platform.
+    - Performed system monitoring, testing and evaluation and including writing technical documentation.
+    - Established good working relations with clients, colleagues and other professionals.
+
+### EXTRACURRICULAR ACTIVITIES
+  * Member at The East African Wild Life Society, _**Nairobi January 2018 – Present**_
+    Advocacy in conserving forestry, wildlife, wetland and marine through policy dialogue, engagement and influence.
+  * Member at Kenya Museum Society, Nairobi, _**April 2024 – Present**_
+    Collect, preserve, study, document and present Kenya’s past and present cultural and natural heritage.
+
+## COURSES
+  * AWS Certified Cloud Practitioner, Amazon Web Services Training and Certification, _**December 2025 – December 2028**_
+  * AWS Certified AI Practitioner, Amazon Web Services Training and Certification, _**January 2026 – January 2029**_
+  * GitHub Copilot, Microsoft _**November 2025 – November 2027**_
