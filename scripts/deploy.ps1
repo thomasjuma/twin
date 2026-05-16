@@ -15,10 +15,12 @@ Set-Location ..
 
 # 2. Terraform workspace & apply
 Set-Location terraform
+$terraformDir = (Get-Location).Path
 $awsAccountId = aws sts get-caller-identity --query Account --output text
 $awsRegion = if ($env:DEFAULT_AWS_REGION) { $env:DEFAULT_AWS_REGION } else { "eu-west-1" }
-$env:TF_DATA_DIR = ".terraform-$Environment-$awsAccountId-$awsRegion"
-terraform init -reconfigure -input=false `
+$env:TF_DATA_DIR = Join-Path $terraformDir ".terraform-$Environment-$awsAccountId-$awsRegion"
+Write-Host "Initializing Terraform (TF_DATA_DIR=$($env:TF_DATA_DIR))..." -ForegroundColor Yellow
+terraform init -reconfigure `
   -backend-config="bucket=twin-terraform-state-$awsAccountId" `
   -backend-config="key=$Environment/terraform.tfstate" `
   -backend-config="region=$awsRegion" `
