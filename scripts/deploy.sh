@@ -13,14 +13,23 @@ echo "📦 Building Lambda package..."
 
 # 2. Terraform workspace & apply
 cd terraform
+TERRAFORM_DIR="$(pwd)"
 AWS_ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
 AWS_REGION=${DEFAULT_AWS_REGION:-eu-west-1}
-terraform init -input=false \
+export TF_DATA_DIR="${TERRAFORM_DIR}/.terraform-${ENVIRONMENT}-${AWS_ACCOUNT_ID}-${AWS_REGION}"
+
+echo "🔧 Initializing Terraform (TF_DATA_DIR=${TF_DATA_DIR})..."
+terraform init -reconfigure \
   -backend-config="bucket=twin-terraform-state-${AWS_ACCOUNT_ID}" \
   -backend-config="key=${ENVIRONMENT}/terraform.tfstate" \
   -backend-config="region=${AWS_REGION}" \
   -backend-config="dynamodb_table=twin-terraform-locks" \
   -backend-config="encrypt=true"
+
+if [ ! -d "${TF_DATA_DIR}" ]; then
+  echo "❌ Terraform init did not create ${TF_DATA_DIR}. Run init manually from ${TERRAFORM_DIR}."
+  exit 1
+fi
 
 if ! terraform workspace list | grep -q "$ENVIRONMENT"; then
   terraform workspace new "$ENVIRONMENT"
@@ -56,7 +65,7 @@ cd ..
 
 # 4. Final messages
 echo -e "\n✅ Deployment complete!"
-echo "🌐 CloudFront URL : $(terraform -chdir=terraform output -raw cloudfront_url)"
+echo "🌐 CloudFront URL : $(terraform -chdir="${TERRAFORM_DIR}" output -raw cloudfront_url)"
 if [ -n "$CUSTOM_URL" ]; then
   echo "🔗 Custom domain  : $CUSTOM_URL"
 fi

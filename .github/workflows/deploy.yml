@@ -74,7 +74,11 @@ jobs:
         id: deploy_outputs
         working-directory: ./terraform
         run: |
-          terraform workspace select ${{ github.event.inputs.environment || 'dev' }}
+          ENV="${{ github.event.inputs.environment || 'dev' }}"
+          AWS_ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
+          AWS_REGION="${{ secrets.DEFAULT_AWS_REGION }}"
+          export TF_DATA_DIR="$(pwd)/.terraform-${ENV}-${AWS_ACCOUNT_ID}-${AWS_REGION}"
+          terraform workspace select "$ENV"
           echo "cloudfront_url=$(terraform output -raw cloudfront_url)" >> $GITHUB_OUTPUT
           echo "api_url=$(terraform output -raw api_gateway_url)" >> $GITHUB_OUTPUT
           echo "frontend_bucket=$(terraform output -raw s3_frontend_bucket)" >> $GITHUB_OUTPUT

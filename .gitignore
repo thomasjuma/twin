@@ -178,6 +178,7 @@ celerybeat.pid
 # Environments
 .env
 .env.*
+!.env.example
 .venv
 env/
 venv/
@@ -230,6 +231,7 @@ cython_debug/
 *.tfstate
 *.tfstate.*
 .terraform/
+terraform/.terraform-*/
 .terraform.lock.hcl
 terraform.tfstate.d/
 *.tfvars
@@ -239,3 +241,5 @@ terraform.tfstate.d/
 # Lambda packages
 lambda-deployment.zip
 lambda-package/
+
+.idea
