@@ -7,13 +7,15 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
 from openai import OpenAI
 
-from models import ChatRequest, ChatResponse
+from models import ChatRequest
 from context import prompt
-from bedrock_service import USE_S3, BEDROCK_MODEL_ID, load_conversation, save_conversation
+from bedrock_service import USE_S3, load_conversation, save_conversation
 
 
 # Load environment variables
 load_dotenv()
+
+OPENAI_CHAT_MODEL = os.getenv("OPENAI_CHAT_MODEL", "gpt-5.5")
 
 app = FastAPI()
 client = OpenAI()
@@ -26,6 +28,7 @@ app.add_middleware(
     allow_credentials=False,
     allow_methods=["GET", "POST", "OPTIONS"],
     allow_headers=["*"],
+    expose_headers=["X-Session-Id"],
 )
 
 
@@ -35,7 +38,7 @@ async def root():
         "message": "AI Digital Twin API (Powered by AWS Bedrock)",
         "memory_enabled": True,
         "storage": "S3" if USE_S3 else "local",
-        "ai_model": BEDROCK_MODEL_ID
+        "ai_model": OPENAI_CHAT_MODEL,
     }
 
 @app.get("/health")
@@ -43,11 +46,11 @@ async def health_check():
     return {
         "status": "healthy", 
         "use_s3": USE_S3,
-        "bedrock_model": BEDROCK_MODEL_ID
+        "ai_model": OPENAI_CHAT_MODEL,
     }
 
 
-@app.post("/chat", response_model=ChatResponse)
+@app.post("/chat")
 async def chat(request: ChatRequest):
     try:
         # Generate session ID if not provided
@@ -68,40 +71,46 @@ async def chat(request: ChatRequest):
 
         # Call OpenAI API
         stream = client.chat.completions.create(
-            model="gpt-4o-mini", 
+            model=OPENAI_CHAT_MODEL, 
             messages=messages,
             stream=True
         )
 
-        assistant_response = ""
+        assistant_response_parts = []
+
+        def format_sse_data(text: str) -> str:
+            data_lines = "".join(f"data: {line}\n" for line in text.split("\n"))
+            return f"{data_lines}\n"
+
         def event_stream():
             for chunk in stream:
                 text = chunk.choices[0].delta.content
                 if text:
-                    assistant_response += text
-                    lines = text.split("\n")
-                    for line in lines[:-1]:
-                        yield f"data: {line}\n\n"
-                        yield "data:  \n"
-                    yield f"data: {lines[-1]}\n\n"
+                    assistant_response_parts.append(text)
+                    yield format_sse_data(text)
 
-        print(f"Assistant response: {assistant_response}")
-        # Update conversation history
-        conversation.append(
-            {"role": "user", "content": request.message, "timestamp": datetime.now().isoformat()}
+            assistant_response = "".join(assistant_response_parts)
+
+            # Update conversation history after the stream has completed.
+            conversation.append(
+                {"role": "user", "content": request.message, "timestamp": datetime.now().isoformat()}
+            )
+            conversation.append(
+                {
+                    "role": "assistant",
+                    "content": assistant_response,
+                    "timestamp": datetime.now().isoformat(),
+                }
+            )
+
+            # Save conversation
+            save_conversation(session_id, conversation)
+
+        return StreamingResponse(
+            event_stream(),
+            headers={"X-Session-Id": session_id},
+            media_type="text/event-stream",
         )
-        conversation.append(
-            {
-                "role": "assistant",
-                "content": assistant_response,
-                "timestamp": datetime.now().isoformat(),
-            }
-        )
-
-        # Save conversation
-        save_conversation(session_id, conversation)
-
-        return StreamingResponse(event_stream(), headers={"sessionId": session_id}, media_type="text/event-stream")
     except HTTPException:
         raise
     except Exception as e:

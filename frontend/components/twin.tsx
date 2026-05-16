@@ -26,6 +26,79 @@ export default function Twin() {
         scrollToBottom();
     }, [messages]);
 
+    const appendAssistantContent = (messageId: string, content: string) => {
+        setMessages(prev => {
+            const existingMessage = prev.find(message => message.id === messageId);
+
+            if (!existingMessage) {
+                return [
+                    ...prev,
+                    {
+                        id: messageId,
+                        role: 'assistant',
+                        content,
+                        timestamp: new Date(),
+                    },
+                ];
+            }
+
+            return prev.map(message =>
+                message.id === messageId
+                    ? { ...message, content: `${message.content}${content}` }
+                    : message
+            );
+        });
+    };
+
+    const readStreamingResponse = async (response: Response, assistantMessageId: string) => {
+        if (!response.body) {
+            throw new Error('Response body is not readable');
+        }
+
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder();
+        let buffer = '';
+
+        const processEvent = (event: string) => {
+            const data = event
+                .split(/\r?\n/)
+                .filter(line => line.startsWith('data:'))
+                .map(line => {
+                    const value = line.slice(5);
+                    return value.startsWith(' ') ? value.slice(1) : value;
+                })
+                .join('\n');
+
+            if (data) {
+                appendAssistantContent(assistantMessageId, data);
+            }
+        };
+
+        while (true) {
+            const { value, done } = await reader.read();
+
+            if (done) break;
+
+            buffer += decoder.decode(value, { stream: true });
+
+            let boundary = buffer.match(/\r?\n\r?\n/);
+            while (boundary) {
+                const boundaryIndex = boundary.index ?? 0;
+                const event = buffer.slice(0, boundaryIndex);
+
+                buffer = buffer.slice(boundaryIndex + boundary[0].length);
+                processEvent(event);
+                boundary = buffer.match(/\r?\n\r?\n/);
+            }
+        }
+
+        buffer += decoder.decode();
+
+        if (buffer.trim()) {
+            processEvent(buffer);
+        }
+    };
+
     const sendMessage = async () => {
         if (!input.trim() || isLoading) return;
 
@@ -40,11 +113,14 @@ export default function Twin() {
         setInput('');
         setIsLoading(true);
 
+        const assistantMessageId = `${Date.now() + 1}`;
+
         try {
             const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/chat`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
+                    'Accept': 'text/event-stream',
                 },
                 body: JSON.stringify({
                     message: userMessage.content,
@@ -54,29 +130,39 @@ export default function Twin() {
 
             if (!response.ok) throw new Error('Failed to send message');
 
-            const data = await response.json();
+            const responseSessionId = response.headers.get('X-Session-Id');
 
-            if (!sessionId) {
-                setSessionId(data.session_id);
+            if (responseSessionId) {
+                setSessionId(responseSessionId);
             }
 
-            const assistantMessage: Message = {
-                id: (Date.now() + 1).toString(),
-                role: 'assistant',
-                content: data.response,
-                timestamp: new Date(),
-            };
-
-            setMessages(prev => [...prev, assistantMessage]);
+            await readStreamingResponse(response, assistantMessageId);
         } catch (error) {
             console.error('Error:', error);
             const errorMessage: Message = {
-                id: (Date.now() + 1).toString(),
+                id: assistantMessageId,
                 role: 'assistant',
                 content: 'Sorry, I encountered an error. Please try again.',
                 timestamp: new Date(),
             };
-            setMessages(prev => [...prev, errorMessage]);
+            setMessages(prev => {
+                const existingMessage = prev.find(message => message.id === assistantMessageId);
+
+                if (!existingMessage) {
+                    return [...prev, errorMessage];
+                }
+
+                return prev.map(message =>
+                    message.id === assistantMessageId
+                        ? {
+                            ...message,
+                            content: message.content
+                                ? `${message.content}\n\n${errorMessage.content}`
+                                : errorMessage.content,
+                        }
+                        : message
+                );
+            });
         } finally {
             setIsLoading(false);
             // Refocus the input after message is sent
@@ -85,6 +171,8 @@ export default function Twin() {
             }, 100);
         }
     };
+
+    const showLoadingIndicator = isLoading && messages[messages.length - 1]?.role !== 'assistant';
 
     const handleKeyPress = (e: React.KeyboardEvent) => {
         if (e.key === 'Enter' && !e.shiftKey) {
@@ -108,7 +196,7 @@ export default function Twin() {
             <div className="bg-gradient-to-r from-slate-700 to-slate-800 text-white p-4 rounded-t-lg">
                 <h2 className="text-xl font-semibold flex items-center gap-2">
                     <Bot className="w-6 h-6" />
-                    Thomas Juma's Digital Twin
+                    Thomas Juma&apos;s Digital Twin
                 </h2>
             </div>
 
@@ -125,8 +213,8 @@ export default function Twin() {
                         ) : (
                             <Bot className="w-12 h-12 mx-auto mb-3 text-gray-400" />
                         )}
-                        <p>Hello! I&apos;m Thomas' Digital Twin.</p>
-                        <p className="text-sm mt-2">Ask me anything about Thomas' career, skills and abilities!</p>
+                        <p>Hello! I&apos;m Thomas&apos; Digital Twin.</p>
+                        <p className="text-sm mt-2">Ask me anything about Thomas&apos; career, skills and abilities!</p>
                     </div>
                 )}
 
@@ -180,7 +268,7 @@ export default function Twin() {
                     </div>
                 ))}
 
-                {isLoading && (
+                {showLoadingIndicator && (
                     <div className="flex gap-3 justify-start">
                         <div className="flex-shrink-0">
                             {hasAvatar ? (
