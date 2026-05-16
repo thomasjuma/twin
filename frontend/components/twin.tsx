@@ -150,14 +150,14 @@ const renderInlineMarkdown = (content: string): ReactNode[] => {
                     href={match[3]}
                     target="_blank"
                     rel="noreferrer"
-                    className="font-medium underline underline-offset-2"
+                    className="font-medium text-emerald-800 underline underline-offset-2 hover:text-emerald-950"
                 >
                     {match[2]}
                 </a>
             );
         } else if (match[4]) {
             nodes.push(
-                <code key={key} className="rounded bg-slate-100 px-1 py-0.5 text-[0.9em] text-slate-800">
+                <code key={key} className="rounded bg-stone-100 px-1 py-0.5 text-[0.9em] text-stone-800">
                     {match[4]}
                 </code>
             );
@@ -222,7 +222,7 @@ function MarkdownMessage({ content }: { content: string }) {
 
                 if (block.type === 'blockquote') {
                     return (
-                        <blockquote key={index} className="border-l-4 border-slate-300 pl-3 text-slate-600">
+                        <blockquote key={index} className="border-l-4 border-emerald-200 pl-3 text-stone-600">
                             {renderInlineMarkdown(block.content)}
                         </blockquote>
                     );
@@ -232,7 +232,7 @@ function MarkdownMessage({ content }: { content: string }) {
                     return (
                         <pre
                             key={index}
-                            className="overflow-x-auto rounded-md bg-slate-900 p-3 text-sm text-slate-100"
+                            className="overflow-x-auto rounded-md bg-stone-900 p-3 text-sm text-stone-100"
                         >
                             <code>{block.content}</code>
                         </pre>
@@ -430,30 +430,36 @@ export default function Twin() {
     }, []);
 
     return (
-        <div className="flex flex-col h-full bg-gray-50 rounded-lg shadow-lg">
+        <div className="flex h-full flex-col overflow-hidden rounded-lg border border-stone-200/80 bg-[#fffaf3] shadow-[0_18px_45px_rgba(68,52,38,0.14)]">
             {/* Header */}
-            <div className="bg-gradient-to-r from-slate-700 to-slate-800 text-white p-4 rounded-t-lg">
-                <h2 className="text-xl font-semibold flex items-center gap-2">
-                    <Bot className="w-6 h-6" />
-                    Thomas Juma&apos;s Digital Twin
-                </h2>
+            <div className="border-b border-emerald-900/10 bg-[#38564a] px-4 py-4 text-white sm:px-5">
+                <div className="flex items-center gap-3">
+                    <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-[#f3d8ca] text-[#38564a]">
+                        <Bot className="h-5 w-5" />
+                    </div>
+                    <h2 className="text-lg font-semibold leading-tight sm:text-xl">
+                        Thomas Juma&apos;s Digital Twin
+                    </h2>
+                </div>
             </div>
 
             {/* Messages */}
-            <div className="flex-1 overflow-y-auto p-4 space-y-4">
+            <div className="flex-1 space-y-4 overflow-y-auto bg-[linear-gradient(180deg,#fffaf3_0%,#f8f1e8_100%)] p-4 sm:p-5">
                 {messages.length === 0 && (
-                    <div className="text-center text-gray-500 mt-8">
+                    <div className="mx-auto mt-10 max-w-sm text-center text-stone-500">
                         {hasAvatar ? (
                             <img 
                                 src="/avatar.jpeg" 
                                 alt="Digital Twin Avatar" 
-                                className="w-20 h-20 rounded-full mx-auto mb-3 border-2 border-gray-300"
+                                className="mx-auto mb-4 h-20 w-20 rounded-full border-2 border-[#d8c5ad] shadow-sm"
                             />
                         ) : (
-                            <Bot className="w-12 h-12 mx-auto mb-3 text-gray-400" />
+                            <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-emerald-50 text-emerald-800 ring-1 ring-emerald-100">
+                                <Bot className="h-8 w-8" />
+                            </div>
                         )}
-                        <p>Hello! I&apos;m Thomas&apos; Digital Twin.</p>
-                        <p className="text-sm mt-2">Ask me anything about Thomas&apos; career, skills and abilities!</p>
+                        <p className="font-medium text-stone-700">Hello! I&apos;m Thomas&apos; Digital Twin.</p>
+                        <p className="mt-2 text-sm leading-6">Ask me anything about Thomas&apos; career, skills and abilities!</p>
                     </div>
                 )}
 
@@ -470,21 +476,21 @@ export default function Twin() {
                                     <img 
                                         src="/avatar.jpeg" 
                                         alt="Digital Twin Avatar" 
-                                        className="w-8 h-8 rounded-full border border-slate-300"
+                                        className="h-8 w-8 rounded-full border border-[#d8c5ad] shadow-sm"
                                     />
                                 ) : (
-                                    <div className="w-8 h-8 bg-slate-700 rounded-full flex items-center justify-center">
-                                        <Bot className="w-5 h-5 text-white" />
+                                    <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[#38564a] text-white shadow-sm">
+                                        <Bot className="h-5 w-5" />
                                     </div>
                                 )}
                             </div>
                         )}
 
                         <div
-                            className={`max-w-[70%] rounded-lg p-3 ${
+                            className={`max-w-[82%] rounded-lg px-4 py-3 leading-6 shadow-sm sm:max-w-[74%] ${
                                 message.role === 'user'
-                                    ? 'bg-slate-700 text-white'
-                                    : 'bg-white border border-gray-200 text-gray-800'
+                                    ? 'bg-[#5d4636] text-white'
+                                    : 'border border-stone-200 bg-white text-stone-800'
                             }`}
                         >
                             {message.role === 'assistant' ? (
@@ -494,7 +500,7 @@ export default function Twin() {
                             )}
                             <p
                                 className={`text-xs mt-1 ${
-                                    message.role === 'user' ? 'text-slate-300' : 'text-gray-500'
+                                    message.role === 'user' ? 'text-stone-200' : 'text-stone-500'
                                 }`}
                             >
                                 {message.timestamp.toLocaleTimeString()}
@@ -503,8 +509,8 @@ export default function Twin() {
 
                         {message.role === 'user' && (
                             <div className="flex-shrink-0">
-                                <div className="w-8 h-8 bg-gray-600 rounded-full flex items-center justify-center">
-                                    <User className="w-5 h-5 text-white" />
+                                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[#c98267] text-white shadow-sm">
+                                    <User className="h-5 w-5" />
                                 </div>
                             </div>
                         )}
@@ -518,19 +524,19 @@ export default function Twin() {
                                 <img 
                                     src="/avatar.jpeg" 
                                     alt="Digital Twin Avatar" 
-                                    className="w-8 h-8 rounded-full border border-slate-300"
+                                    className="h-8 w-8 rounded-full border border-[#d8c5ad] shadow-sm"
                                 />
                             ) : (
-                                <div className="w-8 h-8 bg-slate-700 rounded-full flex items-center justify-center">
-                                    <Bot className="w-5 h-5 text-white" />
+                                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[#38564a] text-white shadow-sm">
+                                    <Bot className="h-5 w-5" />
                                 </div>
                             )}
                         </div>
-                        <div className="bg-white border border-gray-200 rounded-lg p-3">
+                        <div className="rounded-lg border border-stone-200 bg-white p-3 shadow-sm">
                             <div className="flex space-x-2">
-                                <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" />
-                                <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce delay-100" />
-                                <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce delay-200" />
+                                <div className="h-2 w-2 animate-bounce rounded-full bg-[#c98267]" />
+                                <div className="h-2 w-2 animate-bounce rounded-full bg-[#d8a48e] delay-100" />
+                                <div className="h-2 w-2 animate-bounce rounded-full bg-[#38564a] delay-200" />
                             </div>
                         </div>
                     </div>
@@ -540,7 +546,7 @@ export default function Twin() {
             </div>
 
             {/* Input */}
-            <div className="border-t border-gray-200 p-4 bg-white rounded-b-lg">
+            <div className="border-t border-stone-200 bg-white/95 p-4">
                 <div className="flex gap-2">
                     <input
                         ref={inputRef}
@@ -549,14 +555,14 @@ export default function Twin() {
                         onChange={(e) => setInput(e.target.value)}
                         onKeyDown={handleKeyPress}
                         placeholder="Type your message..."
-                        className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-600 focus:border-transparent text-gray-800"
+                        className="flex-1 rounded-lg border border-stone-300 bg-[#fffdf9] px-4 py-2.5 text-stone-800 placeholder:text-stone-400 focus:border-transparent focus:outline-none focus:ring-2 focus:ring-[#6f927d]"
                         disabled={isLoading}
                         autoFocus
                     />
                     <button
                         onClick={sendMessage}
                         disabled={!input.trim() || isLoading}
-                        className="px-4 py-2 bg-slate-700 text-white rounded-lg hover:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-slate-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                        className="rounded-lg bg-[#38564a] px-4 py-2.5 text-white transition-colors hover:bg-[#2f493f] focus:outline-none focus:ring-2 focus:ring-[#6f927d] disabled:cursor-not-allowed disabled:opacity-50"
                     >
                         <Send className="w-5 h-5" />
                     </button>

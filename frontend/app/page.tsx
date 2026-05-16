@@ -33,21 +33,21 @@ function LinkedInIcon({ className }: { className?: string }) {
 
 export default function Home() {
   return (
-    <main className="min-h-screen bg-gradient-to-br from-slate-50 to-gray-100">
-      <div className="container mx-auto px-4 py-8">
+    <main className="min-h-screen bg-[linear-gradient(135deg,#f7f2ea_0%,#eef5ef_48%,#f7ece8_100%)] text-stone-900">
+      <div className="container mx-auto px-4 py-6 sm:py-8">
         <div className="max-w-4xl mx-auto">
 
-          <div className="h-[550px]">
+          <div className="h-[calc(100vh-120px)] min-h-[560px] max-h-[760px]">
             <Twin />
           </div>
 
-          <footer className="mt-8 text-center text-sm text-gray-500">
+          <footer className="mt-6 text-center text-sm text-stone-500">
             <div className="flex justify-center gap-5">
               <a
                 href={SOCIAL.linkedin}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-gray-500 transition-colors hover:text-[#0A66C2]"
+                className="text-stone-500 transition-colors hover:text-[#0A66C2]"
                 aria-label="LinkedIn"
               >
                 <LinkedInIcon className="h-6 w-6" />
@@ -56,7 +56,7 @@ export default function Home() {
                 href={SOCIAL.github}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-gray-500 transition-colors hover:text-gray-900"
+                className="text-stone-500 transition-colors hover:text-stone-900"
                 aria-label="GitHub"
               >
                 <GitHubIcon className="h-6 w-6" />
