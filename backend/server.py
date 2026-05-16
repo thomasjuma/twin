@@ -75,7 +75,6 @@ async def chat(request: ChatRequest):
             "timestamp": datetime.now().isoformat(),
         }
         conversation.append(user_message)
-        save_conversation(session_id, conversation)
 
         # Call OpenAI API
         stream = client.chat.completions.create(
@@ -108,10 +107,10 @@ async def chat(request: ChatRequest):
                         }
                     )
 
-                    try:
-                        save_conversation(session_id, conversation)
-                    except Exception as e:
-                        print(f"Error saving streamed conversation: {str(e)}")
+                try:
+                    save_conversation(session_id, conversation)
+                except Exception as e:
+                    print(f"Error saving streamed conversation: {str(e)}")
 
         return StreamingResponse(
             event_stream(),
