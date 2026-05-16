@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, type ReactNode } from 'react';
 import { Send, Bot, User } from 'lucide-react';
 
 interface Message {
@@ -8,6 +8,245 @@ interface Message {
     role: 'user' | 'assistant';
     content: string;
     timestamp: Date;
+}
+
+type MarkdownBlock =
+    | { type: 'paragraph'; content: string }
+    | { type: 'heading'; level: 1 | 2 | 3; content: string }
+    | { type: 'unordered-list'; items: string[] }
+    | { type: 'ordered-list'; items: { value: number; content: string }[] }
+    | { type: 'blockquote'; content: string }
+    | { type: 'code'; language: string; content: string };
+
+const parseMarkdownBlocks = (content: string): MarkdownBlock[] => {
+    const blocks: MarkdownBlock[] = [];
+    const lines = content.split(/\r?\n/);
+    let index = 0;
+
+    while (index < lines.length) {
+        const line = lines[index];
+        const trimmedLine = line.trim();
+
+        if (!trimmedLine) {
+            index += 1;
+            continue;
+        }
+
+        const codeFenceMatch = trimmedLine.match(/^```(\w+)?\s*$/);
+        if (codeFenceMatch) {
+            const codeLines: string[] = [];
+            index += 1;
+
+            while (index < lines.length && !lines[index].trim().startsWith('```')) {
+                codeLines.push(lines[index]);
+                index += 1;
+            }
+
+            if (index < lines.length) {
+                index += 1;
+            }
+
+            blocks.push({
+                type: 'code',
+                language: codeFenceMatch[1] ?? '',
+                content: codeLines.join('\n'),
+            });
+            continue;
+        }
+
+        const headingMatch = trimmedLine.match(/^(#{1,3})\s+(.+)$/);
+        if (headingMatch) {
+            blocks.push({
+                type: 'heading',
+                level: headingMatch[1].length as 1 | 2 | 3,
+                content: headingMatch[2],
+            });
+            index += 1;
+            continue;
+        }
+
+        if (/^[-*]\s+/.test(trimmedLine)) {
+            const items: string[] = [];
+
+            while (index < lines.length && /^[-*]\s+/.test(lines[index].trim())) {
+                items.push(lines[index].trim().replace(/^[-*]\s+/, ''));
+                index += 1;
+            }
+
+            blocks.push({ type: 'unordered-list', items });
+            continue;
+        }
+
+        if (/^\d+\.\s+/.test(trimmedLine)) {
+            const items: { value: number; content: string }[] = [];
+
+            while (index < lines.length && /^\d+\.\s+/.test(lines[index].trim())) {
+                const listItemMatch = lines[index].trim().match(/^(\d+)\.\s+(.+)$/);
+
+                if (listItemMatch) {
+                    items.push({
+                        value: Number(listItemMatch[1]),
+                        content: listItemMatch[2],
+                    });
+                }
+
+                index += 1;
+            }
+
+            blocks.push({ type: 'ordered-list', items });
+            continue;
+        }
+
+        if (trimmedLine.startsWith('>')) {
+            const quoteLines: string[] = [];
+
+            while (index < lines.length && lines[index].trim().startsWith('>')) {
+                quoteLines.push(lines[index].trim().replace(/^>\s?/, ''));
+                index += 1;
+            }
+
+            blocks.push({ type: 'blockquote', content: quoteLines.join(' ') });
+            continue;
+        }
+
+        const paragraphLines: string[] = [];
+
+        while (
+            index < lines.length
+            && lines[index].trim()
+            && !lines[index].trim().match(/^```(\w+)?\s*$/)
+            && !lines[index].trim().match(/^(#{1,3})\s+(.+)$/)
+            && !/^[-*]\s+/.test(lines[index].trim())
+            && !/^\d+\.\s+/.test(lines[index].trim())
+            && !lines[index].trim().startsWith('>')
+        ) {
+            paragraphLines.push(lines[index].trim());
+            index += 1;
+        }
+
+        blocks.push({ type: 'paragraph', content: paragraphLines.join(' ') });
+    }
+
+    return blocks;
+};
+
+const renderInlineMarkdown = (content: string): ReactNode[] => {
+    const nodes: ReactNode[] = [];
+    const inlinePattern = /(\[([^\]]+)\]\((https?:\/\/[^\s)]+|mailto:[^\s)]+)\)|`([^`]+)`|\*\*([^*]+)\*\*|\*([^*]+)\*)/g;
+    let lastIndex = 0;
+    let match: RegExpExecArray | null;
+
+    while ((match = inlinePattern.exec(content)) !== null) {
+        if (match.index > lastIndex) {
+            nodes.push(content.slice(lastIndex, match.index));
+        }
+
+        const key = `${match.index}-${match[0]}`;
+
+        if (match[2] && match[3]) {
+            nodes.push(
+                <a
+                    key={key}
+                    href={match[3]}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="font-medium underline underline-offset-2"
+                >
+                    {match[2]}
+                </a>
+            );
+        } else if (match[4]) {
+            nodes.push(
+                <code key={key} className="rounded bg-slate-100 px-1 py-0.5 text-[0.9em] text-slate-800">
+                    {match[4]}
+                </code>
+            );
+        } else if (match[5]) {
+            nodes.push(<strong key={key}>{match[5]}</strong>);
+        } else if (match[6]) {
+            nodes.push(<em key={key}>{match[6]}</em>);
+        }
+
+        lastIndex = inlinePattern.lastIndex;
+    }
+
+    if (lastIndex < content.length) {
+        nodes.push(content.slice(lastIndex));
+    }
+
+    return nodes;
+};
+
+function MarkdownMessage({ content }: { content: string }) {
+    const blocks = parseMarkdownBlocks(content);
+
+    return (
+        <div className="space-y-2">
+            {blocks.map((block, index) => {
+                if (block.type === 'heading') {
+                    const HeadingTag = block.level === 1 ? 'h1' : block.level === 2 ? 'h2' : 'h3';
+                    const headingClasses = block.level === 1
+                        ? 'text-lg font-semibold'
+                        : block.level === 2
+                            ? 'text-base font-semibold'
+                            : 'text-sm font-semibold';
+
+                    return (
+                        <HeadingTag key={index} className={headingClasses}>
+                            {renderInlineMarkdown(block.content)}
+                        </HeadingTag>
+                    );
+                }
+
+                if (block.type === 'unordered-list') {
+                    return (
+                        <ul key={index} className="list-disc space-y-1 pl-5">
+                            {block.items.map((item, itemIndex) => (
+                                <li key={itemIndex}>{renderInlineMarkdown(item)}</li>
+                            ))}
+                        </ul>
+                    );
+                }
+
+                if (block.type === 'ordered-list') {
+                    return (
+                        <ol key={index} className="list-decimal space-y-1 pl-5" start={block.items[0]?.value ?? 1}>
+                            {block.items.map((item, itemIndex) => (
+                                <li key={itemIndex} value={item.value}>
+                                    {renderInlineMarkdown(item.content)}
+                                </li>
+                            ))}
+                        </ol>
+                    );
+                }
+
+                if (block.type === 'blockquote') {
+                    return (
+                        <blockquote key={index} className="border-l-4 border-slate-300 pl-3 text-slate-600">
+                            {renderInlineMarkdown(block.content)}
+                        </blockquote>
+                    );
+                }
+
+                if (block.type === 'code') {
+                    return (
+                        <pre
+                            key={index}
+                            className="overflow-x-auto rounded-md bg-slate-900 p-3 text-sm text-slate-100"
+                        >
+                            <code>{block.content}</code>
+                        </pre>
+                    );
+                }
+
+                if (block.type === 'paragraph') {
+                    return <p key={index}>{renderInlineMarkdown(block.content)}</p>;
+                }
+
+                return null;
+            })}
+        </div>
+    );
 }
 
 export default function Twin() {
@@ -248,7 +487,11 @@ export default function Twin() {
                                     : 'bg-white border border-gray-200 text-gray-800'
                             }`}
                         >
-                            <p className="whitespace-pre-wrap">{message.content}</p>
+                            {message.role === 'assistant' ? (
+                                <MarkdownMessage content={message.content} />
+                            ) : (
+                                <p className="whitespace-pre-wrap">{message.content}</p>
+                            )}
                             <p
                                 className={`text-xs mt-1 ${
                                     message.role === 'user' ? 'text-slate-300' : 'text-gray-500'
