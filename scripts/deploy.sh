@@ -16,7 +16,7 @@ cd terraform
 AWS_ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
 AWS_REGION=${DEFAULT_AWS_REGION:-eu-west-1}
 export TF_DATA_DIR=".terraform-${ENVIRONMENT}-${AWS_ACCOUNT_ID}-${AWS_REGION}"
-terraform init -reconfigure \
+terraform init -input=false -reconfigure \
   -backend-config="bucket=twin-terraform-state-${AWS_ACCOUNT_ID}" \
   -backend-config="key=${ENVIRONMENT}/terraform.tfstate" \
   -backend-config="region=${AWS_REGION}" \
