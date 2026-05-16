@@ -16,8 +16,9 @@ Set-Location ..
 # 2. Terraform workspace & apply
 Set-Location terraform
 $awsAccountId = aws sts get-caller-identity --query Account --output text
-$awsRegion = if ($env:DEFAULT_AWS_REGION) { $env:DEFAULT_AWS_REGION } else { "us-east-1" }
-terraform init -input=false -force-copy `
+$awsRegion = if ($env:DEFAULT_AWS_REGION) { $env:DEFAULT_AWS_REGION } else { "eu-west-1" }
+$env:TF_DATA_DIR = ".terraform-$Environment-$awsAccountId-$awsRegion"
+terraform init -input=false -reconfigure -force-copy `
   -backend-config="bucket=twin-terraform-state-$awsAccountId" `
   -backend-config="key=$Environment/terraform.tfstate" `
   -backend-config="region=$awsRegion" `
