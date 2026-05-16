@@ -333,7 +333,9 @@ export default function Twin() {
 
         buffer += decoder.decode();
 
-        if (buffer.trim()) {
+        // The backend only emits data-only SSE messages. Accept a final data
+        // event without a trailing blank line, but ignore comments/other fields.
+        if (buffer.trim() && buffer.split(/\r?\n/).some(line => line.startsWith('data:'))) {
             processEvent(buffer);
         }
     };
