@@ -9,7 +9,7 @@ from openai import OpenAI
 
 from models import ChatRequest
 from context import prompt
-from bedrock_service import USE_S3, load_conversation, save_conversation
+from storage import USE_S3, load_conversation, save_conversation
 
 
 # Load environment variables
