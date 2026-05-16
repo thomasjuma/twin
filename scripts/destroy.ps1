@@ -15,14 +15,15 @@ Write-Host "Preparing to destroy $ProjectName-$Environment infrastructure..." -F
 
 # Navigate to terraform directory
 Set-Location (Join-Path (Split-Path $PSScriptRoot -Parent) "terraform")
+$terraformDir = (Get-Location).Path
 
 # Get AWS Account ID for backend configuration
 $awsAccountId = aws sts get-caller-identity --query Account --output text
 $awsRegion = if ($env:DEFAULT_AWS_REGION) { $env:DEFAULT_AWS_REGION } else { "eu-west-1" }
-$env:TF_DATA_DIR = ".terraform-$Environment-$awsAccountId-$awsRegion"
+$env:TF_DATA_DIR = Join-Path $terraformDir ".terraform-$Environment-$awsAccountId-$awsRegion"
 
 # Initialize terraform with S3 backend
-Write-Host "Initializing Terraform with S3 backend..." -ForegroundColor Yellow
+Write-Host "Initializing Terraform (TF_DATA_DIR=$($env:TF_DATA_DIR))..." -ForegroundColor Yellow
 terraform init -reconfigure `
   -backend-config="bucket=twin-terraform-state-$awsAccountId" `
   -backend-config="key=$Environment/terraform.tfstate" `
