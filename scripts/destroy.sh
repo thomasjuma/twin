@@ -25,7 +25,7 @@ export TF_DATA_DIR=".terraform-${ENVIRONMENT}-${AWS_ACCOUNT_ID}-${AWS_REGION}"
 
 # Initialize terraform with S3 backend
 echo "🔧 Initializing Terraform with S3 backend..."
-terraform init -reconfigure \
+terraform init -reconfigure -input=false \
   -backend-config="bucket=twin-terraform-state-${AWS_ACCOUNT_ID}" \
   -backend-config="key=${ENVIRONMENT}/terraform.tfstate" \
   -backend-config="region=${AWS_REGION}" \
