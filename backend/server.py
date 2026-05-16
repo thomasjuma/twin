@@ -94,9 +94,6 @@ async def chat(request: ChatRequest):
 
             # Update conversation history after the stream has completed.
             conversation.append(
-                {"role": "user", "content": request.message, "timestamp": datetime.now().isoformat()}
-            )
-            conversation.append(
                 {
                     "role": "assistant",
                     "content": assistant_response,
