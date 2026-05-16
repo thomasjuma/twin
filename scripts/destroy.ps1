@@ -23,7 +23,7 @@ $env:TF_DATA_DIR = ".terraform-$Environment-$awsAccountId-$awsRegion"
 
 # Initialize terraform with S3 backend
 Write-Host "Initializing Terraform with S3 backend..." -ForegroundColor Yellow
-terraform init -input=false -reconfigure -force-copy `
+terraform init -reconfigure `
   -backend-config="bucket=twin-terraform-state-$awsAccountId" `
   -backend-config="key=$Environment/terraform.tfstate" `
   -backend-config="region=$awsRegion" `
