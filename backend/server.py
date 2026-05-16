@@ -106,7 +106,10 @@ async def chat(request: ChatRequest):
 
         return StreamingResponse(
             event_stream(),
-            headers={"X-Session-Id": session_id},
+            headers={
+                "X-Session-Id": session_id,
+                "X-Content-Type-Options": "nosniff",
+            },
             media_type="text/plain",
         )
     except HTTPException:
