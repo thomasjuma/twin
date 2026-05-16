@@ -345,7 +345,7 @@ export default function Twin() {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Accept': 'text/event-stream',
+                    'Accept': 'text/plain',
                 },
                 body: JSON.stringify({
                     message: userMessage.content,

@@ -52,10 +52,9 @@ async def health_check():
 
 @app.post("/chat")
 async def chat(request: ChatRequest):
+    # Generate session ID if not provided
+    session_id = request.session_id or str(uuid.uuid4())
     try:
-        # Generate session ID if not provided
-        session_id = request.session_id or str(uuid.uuid4())
-
         # Load conversation history
         conversation = load_conversation(session_id)
 
@@ -111,7 +110,7 @@ async def chat(request: ChatRequest):
         return StreamingResponse(
             event_stream(),
             headers={"X-Session-Id": session_id},
-            media_type="text/event-stream",
+            media_type="text/plain",
         )
     except HTTPException:
         raise
