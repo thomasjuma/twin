@@ -44,7 +44,7 @@ async def root():
 @app.get("/health")
 async def health_check():
     return {
-        "status": "healthy", 
+        "status": "healthy",
         "use_s3": USE_S3,
         "ai_model": OPENAI_CHAT_MODEL,
     }
@@ -84,33 +84,29 @@ async def chat(request: ChatRequest):
         )
 
         assistant_response_parts = []
+        async def event_stream():
+            for chunk in stream:
+                text = chunk.choices[0].delta.content
+                if text:
+                    assistant_response_parts.append(text)
+                    yield text
 
-        def format_sse_data(text: str) -> str:
-            data_lines = "".join(f"data: {line}\n" for line in text.split("\n"))
-            return f"{data_lines}\n"
+            assistant_response = "".join(assistant_response_parts)
 
-        def event_stream():
-            try:
-                for chunk in stream:
-                    text = chunk.choices[0].delta.content
-                    if text:
-                        assistant_response_parts.append(text)
-                        yield format_sse_data(text)
-            finally:
-                assistant_response = "".join(assistant_response_parts)
-                if assistant_response:
-                    conversation.append(
-                        {
-                            "role": "assistant",
-                            "content": assistant_response,
-                            "timestamp": datetime.now().isoformat(),
-                        }
-                    )
+            # Update conversation history after the stream has completed.
+            conversation.append(
+                {"role": "user", "content": request.message, "timestamp": datetime.now().isoformat()}
+            )
+            conversation.append(
+                {
+                    "role": "assistant",
+                    "content": assistant_response,
+                    "timestamp": datetime.now().isoformat(),
+                }
+            )
 
-                try:
-                    save_conversation(session_id, conversation)
-                except Exception as e:
-                    print(f"Error saving streamed conversation: {str(e)}")
+            # Save conversation
+            save_conversation(session_id, conversation)
 
         return StreamingResponse(
             event_stream(),

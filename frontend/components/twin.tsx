@@ -306,47 +306,21 @@ export default function Twin() {
 
         const reader = response.body.getReader();
         const decoder = new TextDecoder();
-        let buffer = '';
-
-        const processEvent = (event: string) => {
-            const data = event
-                .split(/\r?\n/)
-                .filter(line => line.startsWith('data:'))
-                .map(line => {
-                    const value = line.slice(5);
-                    return value.startsWith(' ') ? value.slice(1) : value;
-                })
-                .join('\n');
-
-            if (data) {
-                appendAssistantContent(assistantMessageId, data);
-            }
-        };
 
         while (true) {
             const { value, done } = await reader.read();
 
             if (done) break;
 
-            buffer += decoder.decode(value, { stream: true });
-
-            let boundary = buffer.match(/\r?\n\r?\n/);
-            while (boundary) {
-                const boundaryIndex = boundary.index ?? 0;
-                const event = buffer.slice(0, boundaryIndex);
-
-                buffer = buffer.slice(boundaryIndex + boundary[0].length);
-                processEvent(event);
-                boundary = buffer.match(/\r?\n\r?\n/);
+            const text = decoder.decode(value, { stream: true });
+            if (text) {
+                appendAssistantContent(assistantMessageId, text);
             }
         }
 
-        buffer += decoder.decode();
-
-        // The backend only emits data-only SSE messages. Accept a final data
-        // event without a trailing blank line, but ignore comments/other fields.
-        if (buffer.trim() && buffer.split(/\r?\n/).some(line => line.startsWith('data:'))) {
-            processEvent(buffer);
+        const finalText = decoder.decode();
+        if (finalText) {
+            appendAssistantContent(assistantMessageId, finalText);
         }
     };
 
