@@ -69,6 +69,14 @@ async def chat(request: ChatRequest):
         # Add current user message
         messages.append({"role": "user", "content": request.message})
 
+        user_message = {
+            "role": "user",
+            "content": request.message,
+            "timestamp": datetime.now().isoformat(),
+        }
+        conversation.append(user_message)
+        save_conversation(session_id, conversation)
+
         # Call OpenAI API
         stream = client.chat.completions.create(
             model=OPENAI_CHAT_MODEL, 
@@ -83,28 +91,27 @@ async def chat(request: ChatRequest):
             return f"{data_lines}\n"
 
         def event_stream():
-            for chunk in stream:
-                text = chunk.choices[0].delta.content
-                if text:
-                    assistant_response_parts.append(text)
-                    yield format_sse_data(text)
+            try:
+                for chunk in stream:
+                    text = chunk.choices[0].delta.content
+                    if text:
+                        assistant_response_parts.append(text)
+                        yield format_sse_data(text)
+            finally:
+                assistant_response = "".join(assistant_response_parts)
+                if assistant_response:
+                    conversation.append(
+                        {
+                            "role": "assistant",
+                            "content": assistant_response,
+                            "timestamp": datetime.now().isoformat(),
+                        }
+                    )
 
-            assistant_response = "".join(assistant_response_parts)
-
-            # Update conversation history after the stream has completed.
-            conversation.append(
-                {"role": "user", "content": request.message, "timestamp": datetime.now().isoformat()}
-            )
-            conversation.append(
-                {
-                    "role": "assistant",
-                    "content": assistant_response,
-                    "timestamp": datetime.now().isoformat(),
-                }
-            )
-
-            # Save conversation
-            save_conversation(session_id, conversation)
+                    try:
+                        save_conversation(session_id, conversation)
+                    except Exception as e:
+                        print(f"Error saving streamed conversation: {str(e)}")
 
         return StreamingResponse(
             event_stream(),
