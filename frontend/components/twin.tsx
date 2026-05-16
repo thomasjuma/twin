@@ -256,6 +256,7 @@ export default function Twin() {
     const [sessionId, setSessionId] = useState<string>('');
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const inputRef = useRef<HTMLInputElement>(null);
+    const messageIdCounterRef = useRef(0);
 
     const scrollToBottom = () => {
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -264,6 +265,15 @@ export default function Twin() {
     useEffect(() => {
         scrollToBottom();
     }, [messages]);
+
+    const createMessageId = () => {
+        if (typeof crypto !== 'undefined' && crypto.randomUUID) {
+            return crypto.randomUUID();
+        }
+
+        messageIdCounterRef.current += 1;
+        return `message-${messageIdCounterRef.current}`;
+    };
 
     const appendAssistantContent = (messageId: string, content: string) => {
         setMessages(prev => {
@@ -344,7 +354,7 @@ export default function Twin() {
         if (!input.trim() || isLoading) return;
 
         const userMessage: Message = {
-            id: Date.now().toString(),
+            id: createMessageId(),
             role: 'user',
             content: input,
             timestamp: new Date(),
@@ -354,7 +364,7 @@ export default function Twin() {
         setInput('');
         setIsLoading(true);
 
-        const assistantMessageId = `${Date.now() + 1}`;
+        const assistantMessageId = createMessageId();
 
         try {
             const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/chat`, {
